@@ -1,0 +1,5 @@
+export interface User { _id: string; name: string; username: string; email: string; avatar?: string; role: string; status?: string; bio?: string; lastSeen?: string; }
+export interface Attachment { url: string; name: string; type: string; size: number; }
+export interface Message { _id: string; conversationId: string; senderId: User | string; content: string; attachments?: Attachment[]; replyTo?: Message; reactions?: { emoji: string; users: string[] }[]; deliveredTo?: string[]; readBy?: { user: string; at: string }[]; editedAt?: string; deletedAt?: string; createdAt: string; }
+export interface Conversation { _id: string; type: 'direct'|'group'|'channel'; name?: string; description?: string; avatar?: string; participants: User[]; admins?: string[]; lastMessage?: Message; unreadCounts?: Record<string, number>; pinnedMessages?: string[]; createdBy?: string; }
+export interface Notification { _id: string; type: string; title: string; body: string; read: boolean; createdAt: string; data?: any; }

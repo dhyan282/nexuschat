@@ -1,0 +1,55 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.io = exports.server = exports.app = void 0;
+const express_1 = __importDefault(require("express"));
+const http_1 = __importDefault(require("http"));
+const cors_1 = __importDefault(require("cors"));
+const helmet_1 = __importDefault(require("helmet"));
+const compression_1 = __importDefault(require("compression"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const morgan_1 = __importDefault(require("morgan"));
+const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
+const socket_io_1 = require("socket.io");
+const path_1 = __importDefault(require("path"));
+const env_1 = require("./config/env");
+const socket_1 = require("./socket");
+const validate_1 = require("./middleware/validate");
+const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
+const user_routes_1 = __importDefault(require("./routes/user.routes"));
+const conversation_routes_1 = __importDefault(require("./routes/conversation.routes"));
+const message_routes_1 = __importDefault(require("./routes/message.routes"));
+const file_routes_1 = __importDefault(require("./routes/file.routes"));
+const notification_routes_1 = __importDefault(require("./routes/notification.routes"));
+const admin_routes_1 = __importDefault(require("./routes/admin.routes"));
+const app = (0, express_1.default)();
+exports.app = app;
+const server = http_1.default.createServer(app);
+exports.server = server;
+const io = new socket_io_1.Server(server, {
+    cors: { origin: env_1.env.CLIENT_URL, credentials: true },
+});
+exports.io = io;
+(0, socket_1.setupSocket)(io);
+app.io = io;
+app.use((0, helmet_1.default)({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use((0, compression_1.default)());
+app.use((0, cors_1.default)({ origin: env_1.env.CLIENT_URL, credentials: true }));
+app.use(express_1.default.json({ limit: '10mb' }));
+app.use(express_1.default.urlencoded({ extended: true }));
+app.use((0, cookie_parser_1.default)());
+app.use((0, morgan_1.default)('dev'));
+app.use((0, express_rate_limit_1.default)({ windowMs: 15 * 60 * 1000, max: 300 }));
+app.use('/uploads', express_1.default.static(path_1.default.join(process.cwd(), 'uploads')));
+app.get('/api/health', (_req, res) => res.json({ status: 'ok', time: new Date() }));
+app.use('/api/auth', auth_routes_1.default);
+app.use('/api/users', user_routes_1.default);
+app.use('/api/conversations', conversation_routes_1.default);
+app.use('/api/messages', message_routes_1.default);
+app.use('/api/files', file_routes_1.default);
+app.use('/api/notifications', notification_routes_1.default);
+app.use('/api/admin', admin_routes_1.default);
+app.use(validate_1.errorHandler);
+//# sourceMappingURL=app.js.map
